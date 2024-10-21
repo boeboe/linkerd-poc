@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: plain-http
+  labels:
+    linkerd.io/inject: enabled  # Enable Linkerd proxy injection for observability

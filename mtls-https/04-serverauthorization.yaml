@@ -1,0 +1,14 @@
+---
+apiVersion: policy.linkerd.io/v1beta1
+kind: ServerAuthorization
+metadata:
+  name: nginx-mtls
+  namespace: mtls-https
+spec:
+  client:
+    meshTLS:
+      serviceAccounts:
+      - name: nginx-ingress
+        namespace: ingress-nginx
+  server:
+    name: nginx
