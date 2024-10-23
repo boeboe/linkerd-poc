@@ -1,8 +1,8 @@
-# Istio POC
+# Linkerd POC
 
 ## Overview
 
-This project provides a Proof of Concept (PoC) for deploying a Kubernetes cluster using kind and installing Istio using helm. The deployment can be controlled using the provided Makefile targets and bash scripts, which offer a convenient way to manage the cluster and Istio components.
+This project provides a Proof of Concept (PoC) for deploying a Kubernetes cluster using kind and installing Linkerd using helm. The deployment can be controlled using the provided Makefile targets and bash scripts, which offer a convenient way to manage the cluster and Linkerd components.
 
 ## Prerequisites
 
@@ -20,12 +20,18 @@ The following targets are defined in the [Makefile](./Makefile):
 $ make
 
 help                           This help
-reset                          Reset the kind cluster and Istio installation
-up                             Spin up a kind cluster and install/upgrade Istio
+reset                          Reset the kind cluster and Linkerd installation
+up                             Spin up a kind cluster and install/upgrade Linkerd
 up-kind                        Spin up a kind cluster
-up-istio                       Install/upgrade Istio using Helm with NodePort for ingress gateway
+up-linkerd                     Install/upgrade Linkerd using Helm with NodePort for ingress gateway
 down                           Destroy the kind cluster
+monitoring                     Install Prometheus and Grafana using Helm
 info                           Print kind cluster information and kubectl info
+clean                          Clean all temporary artifacts
+deploy-plain-http              Deploy Nginx as plain HTTP with Nginx Ingress Gateway and Linkerd
+undeploy-plain-http            Undeploy Nginx as plain HTTP with Nginx Ingress Gateway and Linkerd
+deploy-mtls-https              Deploy Nginx as Mutual TLS HTTPS with Nginx Ingress Gateway and Linkerd
+undeploy-mtls-https            Undeploy Nginx as Mutual TLS HTTPS with Nginx Ingress Gateway and Linkerd
 ```
 
 ## Environment Variables
