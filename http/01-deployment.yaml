@@ -11,6 +11,8 @@ spec:
       app: nginx
   template:
     metadata:
+      annotations:
+        config.linkerd.io/proxy-cpu-limit: "0"
       labels:
         app: nginx
     spec:
