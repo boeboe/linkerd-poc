@@ -4,6 +4,7 @@ metadata:
   name: nginx-ingress
   namespace: perf-http-linkerd
   annotations:
+    nginx.ingress.kubernetes.io/service-upstream: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: "${LINKERD_INGRESS_CLASS}"

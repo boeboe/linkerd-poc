@@ -27,9 +27,9 @@ function create_tls_secret {
   # Create the Kubernetes secret for the certificate and key if it doesn't already exist
   print_info "Checking if Kubernetes secret for the wildcard certificate already exists..."
 
-  if ! kubectl get secret perf-https-linkerd-certs -n "${LINKERD_INGRESS_NS}" &>/dev/null; then
+  if ! kubectl get secret perf-https-linkerd-certs -n perf-https-linkerd &>/dev/null; then
     print_info "Creating Kubernetes secret for the wildcard certificate..."
-    kubectl create -n "${LINKERD_INGRESS_NS}" secret tls perf-https-linkerd-certs \
+    kubectl create -n perf-https-linkerd secret tls perf-https-linkerd-certs \
       --cert="${CERT_DIR}/wildcard-cert.pem" \
       --key="${CERT_DIR}/wildcard-key.pem" --dry-run=client -o yaml | kubectl apply -f -
     print_info "TLS secret has been created."
@@ -42,16 +42,17 @@ function create_tls_secret {
 # Function to remove the Kubernetes secret for the wildcard certificate
 function remove_tls_secret {
   print_info "Deleting Kubernetes secret for the wildcard certificate..."
-  kubectl delete secret perf-https-linkerd-certs -n "${LINKERD_INGRESS_NS}" --ignore-not-found
+  kubectl delete secret perf-https-linkerd-certs -n perf-https-linkerd --ignore-not-found
   print_info "TLS secret has been deleted."
 }
 
 # Function to deploy Nginx with NGINX Ingress and Linkerd
 function deploy_nginx_with_ingress {
-  create_tls_secret
 
   print_info "Creating namespace..."
   kubectl apply -f "${MANIFEST_DIR}/00-namespace.yaml"
+
+  create_tls_secret
 
   print_info "Deploying Nginx service..."
   kubectl apply -f "${MANIFEST_DIR}/01-deployment.yaml"
@@ -80,11 +81,11 @@ function undeploy_nginx_with_ingress {
   print_info "Deleting Nginx deployment..."
   kubectl delete -f "${MANIFEST_DIR}/01-deployment.yaml" --ignore-not-found
 
-  print_info "Deleting namespace..."
-  kubectl delete -f "${MANIFEST_DIR}/00-namespace.yaml" --ignore-not-found
-
   # Remove the TLS secret
   remove_tls_secret
+
+  print_info "Deleting namespace..."
+  kubectl delete -f "${MANIFEST_DIR}/00-namespace.yaml" --ignore-not-found
 
   print_info "Nginx and Linkerd resources have been undeployed."
 }

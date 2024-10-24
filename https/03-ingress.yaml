@@ -5,8 +5,8 @@ metadata:
   name: nginx-ingress
   namespace: perf-https-linkerd
   annotations:
+    nginx.ingress.kubernetes.io/service-upstream: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: "${LINKERD_INGRESS_CLASS}"
   tls:
