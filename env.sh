@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 # Setup Environment Variables
-export CLUSTER_NAME="linkerd-cluster"
-export KUBECONTEXT="kind-${CLUSTER_NAME}"
+export ENVIRONMENT="gwc-plsdev"
+# export ENVIRONMENT="gwc-plstst"
+
+
+export LINKERD_NS="linkerd"
+export LINKERD_INGRESS_NS="ingress-nginx-meshed"
 export LINKERD_CRDS_VERSION="1.8.0"
 export LINKERD_CONTROLPLANE_VERSION="1.16.11"
-# export INGRESS_STATUS_PORT=30021
-export INGRESS_HTTP_PORT=30080
-export INGRESS_HTTPS_PORT=30443
-export PROMETHEUS_PORT=30090
-export GRAFANA_PORT=30091
-export GRAFANA_DASHBOARD_ID=6417
+export LINKERD_INGRESS_SVC="ingress-nginx-meshed-controller"
+export LINKERD_INGRESS_CLASS="nginx-meshed"
 
 # Colors
 end="\033[0m"
@@ -57,11 +57,6 @@ function command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-if ! command_exists kind; then
-    print_error "Error: 'kind' is not installed. Please install kind before proceeding."
-    exit 1
-fi
-
 if ! command_exists kubectl; then
     print_error "Error: 'kubectl' is not installed. Please install kubectl before proceeding."
     exit 1
@@ -71,3 +66,45 @@ if ! command_exists helm; then
     print_error "Error: 'helm' is not installed. Please install helm before proceeding."
     exit 1
 fi
+
+case "${ENVIRONMENT}" in
+  gwc-plsdev)
+    print_info "Setting env variables for 'gwc-plsdev'"
+    export AZ_SUBSCRIPTION="e318542a-815a-46d8-93ab-15fabdd926ed"
+    export AZ_RESOURCEGROUP="rg-apps-1-gwc-plsdev"
+    export AZ_AKS_NAME="aks-apps-1-gwc-plsdev"
+    export KUBECONTEXT="aks-apps-1-gwc-plsdev"
+    export DNS_SUFFIX="development.staging.platform.liantis.net"
+    ;;
+
+  gwc-plstst)
+    print_info "Setting env variables for 'gwc-plstst'"
+    export AZ_SUBSCRIPTION="7ec20f55-30d9-4fe6-92ec-ee01918c6a38"
+    export AZ_RESOURCEGROUP="rg-apps-1-gwc-plstst"
+    export AZ_AKS_NAME="aks-apps-1-gwc-plstst"
+    export KUBECONTEXT="aks-apps-1-gwc-plstst"
+    export DNS_SUFFIX="test.staging.platform.liantis.net"
+    ;;
+
+  *)
+    print_error "ENVIRONMENT must be one of 'gwc-plsdev' or 'gwc-plstst'"
+    exit 1
+    ;;
+esac
+
+# Check if the context exists
+if ! kubectl config get-contexts "${KUBECONTEXT}" &>/dev/null; then
+  print_error "Error: Kubernetes context '${KUBECONTEXT}' does not exist."
+  exit 1
+fi
+
+# Get the current context
+CURRENT_CONTEXT=$(kubectl config current-context)
+
+# If the current context is not the target context, switch to it
+if [ "${CURRENT_CONTEXT}" != "${KUBECONTEXT}" ]; then
+  print_info "Switching to Kubernetes context '${KUBECONTEXT}'..."
+  kubectl config use-context "${KUBECONTEXT}"
+else
+  print_info "Already using Kubernetes context '${KUBECONTEXT}'."
+fi 

@@ -1,0 +1,5 @@
+# Allow this .gitignore file
+!.gitignore
+
+# Ignore all other files in the folder
+*

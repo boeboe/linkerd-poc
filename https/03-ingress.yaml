@@ -1,0 +1,26 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  namespace: perf-https-linkerd
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  ingressClassName: "${LINKERD_INGRESS_CLASS}"
+  tls:
+    - hosts:
+        - "perf-https-linkerd.${DNS_SUFFIX}"
+      secretName: perf-https-linkerd-certs
+  rules:
+    - host: "perf-https-linkerd.${DNS_SUFFIX}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80

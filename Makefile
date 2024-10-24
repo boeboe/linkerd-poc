@@ -12,22 +12,13 @@ help: ## This help
 ##### Setup #####
 #################
 
-.PHONY: up-kind up-linkerd up down monitoring info reset clean
+.PHONY: info clean
 
-reset: down clean up ## Reset the kind cluster and Linkerd installation
-up: up-kind up-linkerd ## Spin up a kind cluster and install/upgrade Linkerd
+deploy-linkerd: ## Deploy linkerd using helm charts
+	./linkerd.sh deploy
 
-up-kind: ## Spin up a kind cluster
-	./up-kind.sh
-
-up-linkerd: ## Install/upgrade Linkerd using Helm with NodePort for ingress gateway
-	./up-linkerd.sh
-
-down: ## Destroy the kind cluster
-	./down.sh
-
-monitoring: ## Install Prometheus and Grafana using Helm
-	./monitoring.sh
+undeploy-linkerd: ## Undeploy linkerd using helm charts
+	./linkerd.sh undeploy
 
 info: ## Print kind cluster information and kubectl info
 	./info.sh
@@ -39,16 +30,19 @@ clean: ## Clean all temporary artifacts
 ##### Scenarios ######
 ######################
 
-.PHONY: deploy-plain-http undeploy-plain-http deploy-mtls-https undeploy-mtls-https
+.PHONY: deploy-http undeploy-http deploy-https undeploy-https
 
-deploy-plain-http: ## Deploy Nginx as plain HTTP with Nginx Ingress Gateway and Linkerd
-	./plain-http.sh deploy
+deploy-http: ## Deploy Nginx as plain HTTP with Nginx Ingress
+	./http.sh deploy
 
-undeploy-plain-http: ## Undeploy Nginx as plain HTTP with Nginx Ingress Gateway and Linkerd
-	./plain-http.sh undeploy
+undeploy-http: ## Undeploy Nginx as plain HTTP with Nginx Ingress
+	./http.sh undeploy
 
-deploy-mtls-https: ## Deploy Nginx as Mutual TLS HTTPS with Nginx Ingress Gateway and Linkerd
-	./mtls-https.sh deploy
+deploy-https: ## Deploy Nginx as mutual TLS HTTPS with Nginx Ingress
+	./https.sh deploy
 
-undeploy-mtls-https: ## Undeploy Nginx as Mutual TLS HTTPS with Nginx Ingress Gateway and Linkerd
-	./mtls-https.sh undeploy
+undeploy-https: ## Undeploy Nginx as mutual TLS HTTPS with Nginx Ingress
+	./https.sh undeploy
+
+load-tests: ## Start k6 based load tests
+	./load.sh

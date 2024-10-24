@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: perf-https-linkerd
+  labels:
+    linkerd.io/inject: enabled # Enable Linkerd proxy injection for mTLS

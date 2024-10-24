@@ -3,28 +3,18 @@ export BASE_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && p
 source ${BASE_DIR}/env.sh
 # set -e
 
-echo "Checking that the kubeconfig context is set to ${KUBECONTEXT}..."
-CURRENT_CONTEXT=$(kubectl config current-context)
-if [ "$CURRENT_CONTEXT" != "${KUBECONTEXT}" ]; then
-    print_info "Current kubeconfig context (${CURRENT_CONTEXT}) does not match the expected context (${KUBECONTEXT}). Please switch to the correct context."
-    exit 1
-fi
-
-print_info "Kind cluster information:"
-kind get clusters
-
 print_info "Kubectl context information:"
-kubectl cluster-info --context "${KUBECONTEXT}"
+kubectl cluster-info
 
 print_info "Kubernetes pods and services:"
-kubectl get po,svc --all-namespaces -o wide --context "${KUBECONTEXT}"
+kubectl get po,svc --all-namespaces -o wide
 
-print_info "\nFetching ingress-nginx NodePort information..."
-NGINX_INGRESS_PORT=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}')
-NGINX_INGRESS_HTTPS_PORT=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')
-NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-print_info "ingress-nginx is available at http://${NODE_IP}:${NGINX_INGRESS_PORT} and https://${NODE_IP}:${NGINX_INGRESS_HTTPS_PORT}"
+print_info "\nFetching Linkerd ingress gateway LoadBalancer IP and exposed ports..."
+INGRESS_EXTERNAL_IP=$(kubectl get svc "${LINKERD_INGRESS_SVC}" -n "${LINKERD_INGRESS_NS}" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+INGRESS_HTTP_PORT=$(kubectl get svc "${LINKERD_INGRESS_SVC}" -n "${LINKERD_INGRESS_NS}" -o jsonpath='{.spec.ports[?(@.name=="http")].port}')
+INGRESS_HTTPS_PORT=$(kubectl get svc "${LINKERD_INGRESS_SVC}" -n "${LINKERD_INGRESS_NS}" -o jsonpath='{.spec.ports[?(@.name=="https")].port}')
+print_info "Linkerd ingress gateway is available at http://${INGRESS_EXTERNAL_IP}:${INGRESS_HTTP_PORT} and https://${INGRESS_EXTERNAL_IP}:${INGRESS_HTTPS_PORT}"
 
-print_info "\nFetching Grafana admin password..."
-GRAFANA_ADMIN_PASSWORD=$(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" --context "${KUBECONTEXT}" | base64 --decode)
-print_info "Grafana admin password: ${GRAFANA_ADMIN_PASSWORD}"
+print_info "\nTest traffic commands:"
+print_command "curl http://perf-http-linkerd.${DNS_SUFFIX} --resolve perf-http-linkerd.${DNS_SUFFIX}:${INGRESS_HTTP_PORT}:${INGRESS_EXTERNAL_IP} -H 'TestScenario: perf-http-linkerd'"
+print_command "curl https://perf-https-linkerd.${DNS_SUFFIX} --cacert output/https/wildcard-cert.pem  --resolve perf-https-linkerd.${DNS_SUFFIX}:${INGRESS_HTTPS_PORT}:${INGRESS_EXTERNAL_IP} -H 'TestScenario: perf-https-linkerd'"
